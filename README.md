@@ -90,6 +90,10 @@ LazyTest.preload(): Promise<void>
 
 Starts the same import the component uses. Fire-and-forget on hover, or `await` it.
 
+## Reserved props
+
+`pending`, `failed`, and `onerror` belong to the lazy wrapper, not the wrapped component. If your component declares any of these props, they are omitted from the lazy component's typed props and cannot be forwarded — rename them on the wrapped component if you need them.
+
 ## Source Code
 
 Since this lib is MIT licensed, you can also contribute to it at it's repo on [GitHub](https://github.com/yspoof/svelte-comp-lazyloader)

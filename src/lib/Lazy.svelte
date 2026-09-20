@@ -3,7 +3,7 @@
   import type { Component, Snippet } from "svelte";
 
   type Props = {
-    comp: () => Promise<{ default: Component<any> }>;
+    l: () => Promise<{ default: Component<any> }>;
     ssr?: boolean;
     settled?: { default: Component<any> };
     pending?: Snippet;
@@ -13,7 +13,7 @@
 
   const server = !BROWSER;
 
-  let { comp, ssr = false, settled, pending, failed, onerror, ...rest }: Props = $props();
+  let { l, ssr = false, settled, pending, failed, onerror, ...rest }: Props = $props();
 
   const pendingSnippet = $derived.by(() => {
     if (settled || (ssr && server)) return null;
@@ -27,6 +27,6 @@
   pending={pendingSnippet}
   {failed}
   {onerror}>
-  {const C = $derived((await comp()).default)}
+  {const C = $derived((await l()).default)}
   <C {...rest} />
 </svelte:boundary>

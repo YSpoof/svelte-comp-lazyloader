@@ -11,5 +11,5 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/lib/**/*.ts", "src/lib/**/*.svelte"]
+  "include": ["src/lib/**/*.ts", "src/lib/**/*.svelte", "test/**/*.ts", "test/**/*.svelte"]
 }

@@ -3,14 +3,17 @@ import type { Component, ComponentProps, Snippet } from "svelte";
 import Lazy from "./Lazy.svelte";
 
 type Mod = { default: Component<any> };
-type Reserved = "pending" | "failed" | "onerror" | "ssr";
+type Reserved = "pending" | "failed" | "onerror";
 
 type KnownKeys<T> = {
   [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K];
 };
 
+/** `Record<string, never>` (a component with no props) keys as `string`, but carries no real index signature. */
+type CatchAll<T extends Record<string, unknown>> = [T[string]] extends [never] ? object : T;
+
 type WrappedProps<C extends Component<any>> = string extends keyof ComponentProps<C>
-  ? ComponentProps<C>
+  ? CatchAll<ComponentProps<C>>
   : Omit<KnownKeys<ComponentProps<C>>, Reserved>;
 
 export type LazyProps<M extends Mod> = {
@@ -29,15 +32,15 @@ export type LazyComponent<M extends Mod> = Component<LazyProps<M>> & {
 };
 
 export function lazy<M extends Mod>(
-  comp: () => Promise<M>,
+  loader: () => Promise<M>,
   { ssr = false }: LazyOptions = {},
 ): LazyComponent<M> {
   let pending: Promise<M> | undefined;
   let settled: M | undefined;
 
-  const load = () => (pending ??= comp().then((mod) => (settled = mod)));
+  const load = () => (pending ??= loader().then((mod) => (settled = mod)));
 
-  const injected: Record<PropertyKey, unknown> = { comp: load, ssr };
+  const injected: Record<PropertyKey, unknown> = { l: load, ssr };
 
   const C = ((anchor: any, props: any) =>
     Lazy(
@@ -46,7 +49,7 @@ export function lazy<M extends Mod>(
         get: (target, key) =>
           key === "settled" ? settled : key in injected ? injected[key] : target[key],
         has: (target, key) => key === "settled" || key in injected || key in target,
-        ownKeys: (target) => [...new Set([...Reflect.ownKeys(target), "comp", "ssr", "settled"])],
+        ownKeys: (target) => [...new Set([...Reflect.ownKeys(target), "l", "ssr", "settled"])],
         getOwnPropertyDescriptor: (target, key) =>
           key === "settled" || key in injected
             ? {
